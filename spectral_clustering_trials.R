@@ -609,3 +609,94 @@ ggplot(pca_data, aes(x = PC1, y = PC2, color = cluster)) +
   geom_point(size = 3) +
   labs(title = "K-means clustering visualized in PCA space") +
   theme_classic()
+
+datmasg <- datall %>%
+  mutate(
+    TSG_Class = case_when(
+      TSG > 40 ~ "High TSG",
+      TSG > 20 & TSG <= 40 ~ "Medium TSG",
+      TSG <= 20 ~ "Low TSG"
+    ),
+    TMA_Class = case_when(
+      TMA > 40 ~ "High TMA",
+      TMA > 20 & TMA <= 40 ~ "Medium TMA",
+      TMA <= 20 ~ "Low TMA"
+    ),
+    Combined_Class = paste(TSG_Class, TMA_Class, sep = " / ")
+  ) %>% mutate(class = case_when(
+    TMA_Class == 'High TMA' ~ 'High TMA',
+    TSG_Class == 'High TSG' & TMA_Class != 'High TMA' ~ 'High TSG',
+    TSG_Class == 'Medium TSG' & TMA_Class == 'Medium TMA' ~ 'Mixed',
+    TSG_Class != 'High TSG' & TMA_Class == 'Low TMA' ~ 'Low cover',
+    TSG_Class == 'Low TSG' & TMA_Class == 'Medium TMA' ~ 'Low cover', 
+    TOT <= 5 ~ 'Bare'
+  ))
+head(datmasg)
+TSet_long <- datmasg  %>%
+  pivot_longer(cols = blue:DII_green_red, names_to = "band", values_to = "reflectance")
+head(TSet_long)
+#TSet_long <- TSet_long[-1]
+colnames(TSet_long)
+
+band_order <- c("blue", "green", "red", "vnir", 'NDAVI', 'ind24', 'NDWI', 'WAVI', 'DII_blue_green', 'DII_blue_red', 'DII_green_red') 
+TSet_long$band <- factor(TSet_long$band, levels = band_order) #bands are ordered along the EM spectrum
+
+class_stats <- TSet_long %>%
+  group_by(class, band) %>%
+  summarise(
+    MeanSpectralValue = mean(reflectance, na.rm = TRUE),
+    SD = sd(reflectance, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Plot with standard deviation as shaded area
+ggplot(class_stats, aes(x = band, y = MeanSpectralValue, color = class, group = class)) +
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin = MeanSpectralValue - SD, ymax = MeanSpectralValue + SD), width = 0.2) +
+  labs(title = "Total cover: Bare, Low (< 20%), Medium MA (20-50%, MA dom), Medium SG (20-50%, SG dom), High (> 50%)",
+       x = "Band",
+       y = "Mean Surface Reflectance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 20, face = "bold"))
+
+datbsgma <- datall %>%
+  mutate(class = case_when(
+    TOT < 5 ~ 'Bare',
+    TOT >= 5 & TOT < 50 & TSG > TMA ~ "SG Low",
+    TOT >= 5 & TOT < 50 & TMA > TSG ~ "MA Low",
+    TOT >= 50 & TSG > TMA ~ 'SG High',
+    TOT >= 50 & TMA > TSG ~ 'MA High',
+    TRUE ~ "Unclassified"  # in case TSG == TMA or missing data
+  )) %>% dplyr::filter(class != 'Unclassified')
+
+TSet_long <- datbsgma  %>%
+  pivot_longer(cols = blue:DII_green_red, names_to = "band", values_to = "reflectance")
+head(TSet_long)
+#TSet_long <- TSet_long[-1]
+colnames(TSet_long)
+
+band_order <- c("blue", "green", "red", "vnir", 'NDAVI', 'ind24', 'NDWI', 'WAVI', 'DII_blue_green', 'DII_blue_red', 'DII_green_red') 
+TSet_long$band <- factor(TSet_long$band, levels = band_order) #bands are ordered along the EM spectrum
+
+class_stats <- TSet_long %>%
+  group_by(class, band) %>%
+  summarise(
+    MeanSpectralValue = mean(reflectance, na.rm = TRUE),
+    SD = sd(reflectance, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Plot with standard deviation as shaded area
+ggplot(class_stats, aes(x = band, y = MeanSpectralValue, color = class, group = class)) +
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin = MeanSpectralValue - SD, ymax = MeanSpectralValue + SD), width = 0.2) +
+  labs(title = "Total cover: Bare, Low (< 20%), Medium MA (20-50%, MA dom), Medium SG (20-50%, SG dom), High (> 50%)",
+       x = "Band",
+       y = "Mean Surface Reflectance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 20, face = "bold"))
+#This one looks good
