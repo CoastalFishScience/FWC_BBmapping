@@ -30,17 +30,18 @@ dat_class <- dat_cor %>% dplyr::select(-c(Observer, Date, Comments))
 
 head(dat_binary)
 
-dat_binary <- dat_binary %>% arrange(Station, Year, GRID)
+dat_binary <- dat_binary %>% arrange(Station, Year, GRID) %>% mutate(Longitude = -(Longitude))
 head(dat_binary)
 write.csv(dat_binary, file = 'dat_binary.csv')
 
-dat_class <- dat_class %>% arrange(Station, Year, GRID)
+dat_class <- dat_class %>% arrange(Station, Year, GRID) %>% mutate(Longitude = -(Longitude))
 write.csv(dat_class, file = 'dat_class.csv')
 
 ###Binary data transect####
 # Remove GRID 2 and 3
 dat_grid1 <- dat_binary %>%
   filter(GRID == 1)
+
 
 # Convert to sf and transform to UTM zone 17N
 dat_utm <- dat_grid1 %>%
@@ -108,11 +109,11 @@ dat_all_binary <- dat_all_binary[,c(1,2,3,4,11,12)]
 write.csv(dat_all_binary, file = 'dat_all_binary.csv')
 
 # Convert back to lat/lon for export or visualization
-dat_final <- st_as_sf(dat_all_binary, coords = c("easting", "northing"), crs = 32617) %>%
-  st_transform(4326) %>%
-  mutate(Longitude = st_coordinates(.)[,1],
-         Latitude = st_coordinates(.)[,2]) %>%
-  st_drop_geometry()
+# dat_final <- st_as_sf(dat_all_binary, coords = c("easting", "northing"), crs = 32617) %>%
+#   st_transform(4326) %>%
+#   mutate(Longitude = st_coordinates(.)[,1],
+#          Latitude = st_coordinates(.)[,2]) %>%
+#   st_drop_geometry()
 
 #####repeat process for class data#####
 # Remove GRID 2 and 3
@@ -152,8 +153,8 @@ dat_all_class <- dat_all_class[,-c(38, 37, 36, 35, 34, 33)]
 write.csv(dat_all_class, file = 'dat_all_class.csv')
 
 # Convert back to lat/lon for export or visualization
-dat_final <- st_as_sf(dat_all_class, coords = c("easting", "northing"), crs = 32617) %>%
-  st_transform(4326) %>%
-  mutate(Longitude = st_coordinates(.)[,1],
-         Latitude = st_coordinates(.)[,2]) %>%
-  st_drop_geometry()
+# dat_final <- st_as_sf(dat_all_class, coords = c("easting", "northing"), crs = 32617) %>%
+#   st_transform(4326) %>%
+#   mutate(Longitude = st_coordinates(.)[,1],
+#          Latitude = st_coordinates(.)[,2]) %>%
+#   st_drop_geometry()
