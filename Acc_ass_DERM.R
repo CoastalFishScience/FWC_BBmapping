@@ -11,23 +11,23 @@ library(caret)
 ##Load in data
 SAVBB <- read.csv('dat_all_binary.csv')
 head(SAVBB)
-#2016 with treshold at 10% cover
-map16 <- rast('Maps/S2_BB_SAVmap2016_cover10.tif')
-plot(map16)
+#2017 with treshold at 10% cover
+map17 <- rast('Maps/S2_BB_SAVmap2017_cover10.tif')
+plot(map17)
 #have to classify everything at a 2 and above as dense (2)
-bb16 <- SAVBB %>% dplyr::filter(Year == 2016) %>% mutate(TOT = as.numeric(TOT)) %>% mutate(class1 = if_else(TOT <= 1, 1, 2))
-head(bb16)
+bb17 <- SAVBB %>% dplyr::filter(Year == 2017) %>% mutate(TOT = as.numeric(TOT)) %>% mutate(class1 = if_else(TOT <= 1, 1, 2))
+head(bb17)
 #make this a spatial object for extraction
-bb16utm <- bb16 %>%
+bb17utm <- bb17 %>%
   st_as_sf(coords = c("easting", "northing"), crs = 32617) 
 
-crs(map16)
-crs(bb16utm)
+crs(map17)
+crs(bb17utm)
 
-bb16dat <- extract(map16, bb16utm, bind = T) %>% as.data.frame() 
-head(bb16dat)
-cm16 <- confusionMatrix(factor(bb16dat$class), factor(bb16dat$class1))
-cm16
+bb17dat <- extract(map17, bb17utm, bind = T) %>% as.data.frame() 
+head(bb17dat)
+cm17 <- confusionMatrix(factor(bb17dat$class), factor(bb17dat$class1))
+cm17
 
 #2017 with treshold at 10% cover
 map17 <- rast('Maps/S2_BB_SAVmap2017_cover10.tif')
@@ -157,24 +157,24 @@ cm23 <- confusionMatrix(factor(bb23dat$class, levels = all_levels), factor(bb23d
 cm23
 
 ###20% cover####
-#2016 with treshold at 20% cover
-map1620 <- rast('Maps/S2_BB_SAVmap2016_cover20.tif')
-plot(map1620)
+#2017 with treshold at 20% cover
+map1720 <- rast('Maps/S2_BB_SAVmap2017_cover20.tif')
+plot(map1720)
 #have to classify everything at a 2 and above as dense (2)
-bb1620 <- SAVBB %>% dplyr::filter(Year == 2016) %>% mutate(TOT = as.numeric(TOT)) %>% mutate(class1 = if_else(TOT <= 2, 1, 2))
-head(bb1620)
+bb1720 <- SAVBB %>% dplyr::filter(Year == 2017) %>% mutate(TOT = as.numeric(TOT)) %>% mutate(class1 = if_else(TOT <= 2, 1, 2))
+head(bb1720)
 #make this a spatial object for extraction
-bb16utm20 <- bb1620 %>%
+bb17utm20 <- bb1720 %>%
   st_as_sf(coords = c("easting", "northing"), crs = 32617) 
 
-crs(map16)
-crs(bb16utm)
+crs(map17)
+crs(bb17utm)
 
-bb16dat20 <- extract(map1620, bb16utm20, bind = T) %>% as.data.frame() 
-head(bb16dat)
-cm1620 <- confusionMatrix(factor(bb16dat20$class), factor(bb16dat20$class1))
-cm16
-cm1620
+bb17dat20 <- extract(map1720, bb17utm20, bind = T) %>% as.data.frame() 
+head(bb17dat)
+cm1720 <- confusionMatrix(factor(bb17dat20$class), factor(bb17dat20$class1))
+cm17
+cm1720
 
 #2017 with treshold at 20% cover
 map1720 <- rast('Maps/S2_BB_SAVmap2017_cover20.tif')
@@ -310,24 +310,24 @@ cm23
 cm2320
 
 ####30% cover######
-#2016 with treshold at 30% cover
-map1630 <- rast('Maps/S2_BB_SAVmap2016_cover30.tif')
-plot(map1630)
+#2017 with treshold at 30% cover
+map1730 <- rast('Maps/S2_BB_SAVmap2017_cover30.tif')
+plot(map1730)
 #have to classify everything at a 2 and above as dense (2)
-bb1630 <- SAVBB %>% dplyr::filter(Year == 2016) %>% mutate(TOT = as.numeric(TOT)) %>% mutate(class1 = if_else(TOT <= 2, 1, 2))
-head(bb1630)
+bb1730 <- SAVBB %>% dplyr::filter(Year == 2017) %>% mutate(TOT = as.numeric(TOT)) %>% mutate(class1 = if_else(TOT <= 2, 1, 2))
+head(bb1730)
 #make this a spatial object for extraction
-bb16utm30 <- bb1630 %>%
+bb17utm30 <- bb1730 %>%
   st_as_sf(coords = c("easting", "northing"), crs = 32617) 
 
-crs(map1630)
-crs(bb16utm30)
+crs(map1730)
+crs(bb17utm30)
 
-bb16dat30 <- extract(map1630, bb16utm30, bind = T) %>% as.data.frame() 
-head(bb16dat30)
-cm1630 <- confusionMatrix(factor(bb16dat30$class), factor(bb16dat30$class1))
-cm16
-cm1630
+bb17dat30 <- extract(map1730, bb17utm30, bind = T) %>% as.data.frame() 
+head(bb17dat30)
+cm1730 <- confusionMatrix(factor(bb17dat30$class), factor(bb17dat30$class1))
+cm17
+cm1730
 
 #2017 with treshold at 30% cover
 map1730 <- rast('Maps/S2_BB_SAVmap2017_cover30.tif')
@@ -559,3 +559,335 @@ cm2530 <- confusionMatrix(factor(fd2530e$class), factor(fd2530e$class30))
 cm2510$overall
 cm2520$overall
 cm2530$overall
+
+##For binary, best classification is the 10%!
+
+####Multi-class accuracy assessment####
+##Classification scheme: Bare, Sparse Seagrass, Dense Seagrass, Sparse Macroalgae, Dense Macroalgae
+#First is going to use our data to do acc ass.
+#Test dataset
+test <- read.csv('S2_BB_multiclass_test_class.csv')
+head(test)
+unique(test$class)
+test <- test %>% mutate(classm = case_when(
+  class == 'SG High' ~ 4,
+  class == 'SG Low' ~ 5,
+  class == 'Bare' ~ 1,
+  class == 'MA High' ~ 2,
+  class == 'MA Low' ~ 3
+))
+head(test)
+unique(test$classm)
+#load in maps
+#2023
+m23 <- rast('Maps/S2_BB_SAVmulticlass2023.tif') 
+plot(m23)
+
+test23 <- test %>% dplyr::filter(Year.x == 2023) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test23e <- extract(m23, test23, bind = T) %>% as.data.frame() 
+head(test23e)
+cmm23 <- confusionMatrix(factor(test23e$class), factor(test23e$classm))
+cmm23
+
+#2025
+m25 <- rast('Maps/S2_BB_SAVmulticlass2025.tif') 
+plot(m25)
+
+test25 <- test %>% dplyr::filter(Year.x == 2025) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test25e <- extract(m25, test25, bind = T) %>% as.data.frame() 
+head(test25e)
+cmm25 <- confusionMatrix(factor(test25e$class), factor(test25e$classm))
+cmm25
+
+#Ok, amazing accuracy. Let's try DERM data
+dtest <- read.csv('dat_all_class.csv')
+head(dtest)
+
+dtest <- dtest %>%
+  mutate(class = case_when(
+    TOT <= 1 ~ 'Bare',
+    TOT > 1 & TOT <= 3 & TSG > TMA ~ "SG Low",
+    TOT > 1 & TOT <= 3 & TMA > TSG ~ "MA Low",
+    TOT > 3 & TSG > TMA ~ 'SG High',
+    TOT > 3 & TMA > TSG ~ 'MA High',
+    TRUE ~ "Unclassified"  # in case TSG == TMA or missing data
+  )) %>% dplyr::filter(class != 'Unclassified')
+head(dtest)
+dtest <- dtest %>% mutate(classm = case_when(
+  class == 'SG High' ~ 4,
+  class == 'SG Low' ~ 5,
+  class == 'Bare' ~ 1,
+  class == 'MA High' ~ 2,
+  class == 'MA Low' ~ 3
+)) %>% dplyr::select(-class)
+head(dtest)
+
+#2016
+dtest16 <- dtest %>% dplyr::filter(Year == 2016) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32616)
+m16 <- rast('Maps/S2_BB_SAVmulticlass2016.tif')
+plot(m16)
+dtest16e <- extract(m16, dtest16, bind = T) %>% as.data.frame() 
+head(dtest16e)
+all_levels <- union(unique(dtest16e$class), unique(dtest16e$classm))
+dcmm16 <- confusionMatrix(factor(dtest16e$class, levels = all_levels), factor(dtest16e$classm, levels = all_levels))
+dcmm16
+
+#2017
+dtest17 <- dtest %>% dplyr::filter(Year == 2017) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m17 <- rast('Maps/S2_BB_SAVmulticlass2017.tif')
+plot(m17)
+dtest17e <- extract(m17, dtest17, bind = T) %>% as.data.frame() 
+head(dtest17e)
+all_levels <- union(unique(dtest17e$class), unique(dtest17e$classm))
+dcmm17 <- confusionMatrix(factor(dtest17e$class, levels = all_levels), factor(dtest17e$classm, levels = all_levels))
+dcmm17
+
+#2018
+dtest18 <- dtest %>% dplyr::filter(Year == 2018) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m18 <- rast('Maps/S2_BB_SAVmulticlass2018.tif')
+plot(m18)
+dtest18e <- extract(m18, dtest18, bind = T) %>% as.data.frame() 
+head(dtest18e)
+all_levels <- union(unique(dtest18e$class), unique(dtest18e$classm))
+dcmm18 <- confusionMatrix(factor(dtest18e$class, levels = all_levels), factor(dtest18e$classm, levels = all_levels))
+dcmm18
+
+#2019
+dtest19 <- dtest %>% dplyr::filter(Year == 2019) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m19 <- rast('Maps/S2_BB_SAVmulticlass2019.tif')
+plot(m19)
+dtest19e <- extract(m19, dtest19, bind = T) %>% as.data.frame() 
+head(dtest19e)
+all_levels <- union(unique(dtest19e$class), unique(dtest19e$classm))
+dcmm19 <- confusionMatrix(factor(dtest19e$class, levels = all_levels), factor(dtest19e$classm, levels = all_levels))
+dcmm19
+
+#2020
+dtest20 <- dtest %>% dplyr::filter(Year == 2020) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m20 <- rast('Maps/S2_BB_SAVmulticlass2020.tif')
+plot(m20)
+dtest20e <- extract(m20, dtest20, bind = T) %>% as.data.frame() 
+head(dtest20e)
+all_levels <- union(unique(dtest20e$class), unique(dtest20e$classm))
+dcmm20 <- confusionMatrix(factor(dtest20e$class, levels = all_levels), factor(dtest20e$classm, levels = all_levels))
+dcmm20
+
+#2021
+dtest21 <- dtest %>% dplyr::filter(Year == 2021) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m21 <- rast('Maps/S2_BB_SAVmulticlass2021.tif')
+plot(m21)
+dtest21e <- extract(m21, dtest21, bind = T) %>% as.data.frame() 
+head(dtest21e)
+all_levels <- union(unique(dtest21e$class), unique(dtest21e$classm))
+dcmm21 <- confusionMatrix(factor(dtest21e$class, levels = all_levels), factor(dtest21e$classm, levels = all_levels))
+dcmm21
+
+#2022
+dtest22 <- dtest %>% dplyr::filter(Year == 2022) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m22 <- rast('Maps/S2_BB_SAVmulticlass2022.tif')
+plot(m22)
+dtest22e <- extract(m22, dtest22, bind = T) %>% as.data.frame() 
+head(dtest22e)
+all_levels <- union(unique(dtest22e$class), unique(dtest22e$classm))
+dcmm22 <- confusionMatrix(factor(dtest22e$class, levels = all_levels), factor(dtest22e$classm, levels = all_levels))
+dcmm22
+
+#2023
+dtest23 <- dtest %>% dplyr::filter(Year == 2023) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m23 <- rast('Maps/S2_BB_SAVmulticlass2023.tif')
+plot(m23)
+dtest23e <- extract(m23, dtest23, bind = T) %>% as.data.frame() 
+head(dtest23e)
+all_levels <- union(unique(dtest23e$class), unique(dtest23e$classm))
+dcmm23 <- confusionMatrix(factor(dtest23e$class, levels = all_levels), factor(dtest23e$classm, levels = all_levels))
+dcmm23
+
+
+##Rerun of maps
+##Classification scheme: Bare, Sparse Seagrass, Dense Seagrass, Sparse Macroalgae, Dense Macroalgae
+#First is going to use our data to do acc ass.
+#Test dataset
+test <- read.csv('S2_BB_multiclass_test_class.csv')
+head(test)
+unique(test$class)
+test <- test %>% mutate(classm = case_when(
+  class == 'SG High' ~ 4,
+  class == 'SG Low' ~ 5,
+  class == 'Bare' ~ 1,
+  class == 'MA High' ~ 2,
+  class == 'MA Low' ~ 3
+))
+head(test)
+unique(test$classm)
+#load in maps
+#2023
+m23 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2023.tif') 
+plot(m23)
+
+test23 <- test %>% dplyr::filter(Year.x == 2023) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test23e <- extract(m23, test23, bind = T) %>% as.data.frame() 
+head(test23e)
+cmm23 <- confusionMatrix(factor(test23e$class), factor(test23e$classm))
+cmm23
+
+#2024
+m24 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2024.tif') 
+plot(m24)
+
+test24 <- test %>% dplyr::filter(Year.x == 2024) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test24e <- extract(m24, test24, bind = T) %>% as.data.frame() 
+head(test24e)
+cmm24 <- confusionMatrix(factor(test24e$class), factor(test24e$classm))
+cmm24
+
+#2025
+m25 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2025.tif') 
+plot(m25)
+
+test25 <- test %>% dplyr::filter(Year.x == 2025) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test25e <- extract(m25, test25, bind = T) %>% as.data.frame() 
+head(test25e)
+cmm25 <- confusionMatrix(factor(test25e$class), factor(test25e$classm))
+cmm25
+
+#Ok, amazing accuracy. Let's try DERM data
+dtest <- read.csv('dat_all_class.csv')
+head(dtest)
+
+dtest <- dtest %>%
+  mutate(class = case_when(
+    TOT <= 1 ~ 'Bare',
+    TOT > 1 & TOT <= 3 & TSG > TMA ~ "SG Low",
+    TOT > 1 & TOT <= 3 & TMA > TSG ~ "MA Low",
+    TOT > 3 & TSG > TMA ~ 'SG High',
+    TOT > 3 & TMA > TSG ~ 'MA High',
+    TRUE ~ "Unclassified"  # in case TSG == TMA or missing data
+  )) %>% dplyr::filter(class != 'Unclassified')
+head(dtest)
+dtest <- dtest %>% mutate(classm = case_when(
+  class == 'SG High' ~ 4,
+  class == 'SG Low' ~ 5,
+  class == 'Bare' ~ 1,
+  class == 'MA High' ~ 2,
+  class == 'MA Low' ~ 3
+)) %>% dplyr::select(-class)
+head(dtest)
+
+#2016
+dtest16 <- dtest %>% dplyr::filter(Year == 2016) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32616)
+m16 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2016.tif')
+plot(m16)
+dtest16e <- extract(m16, dtest16, bind = T) %>% as.data.frame() 
+head(dtest16e)
+all_levels <- union(unique(dtest16e$class), unique(dtest16e$classm))
+dcmm16 <- confusionMatrix(factor(dtest16e$class, levels = all_levels), factor(dtest16e$classm, levels = all_levels))
+dcmm16
+
+#2017
+dtest17 <- dtest %>% dplyr::filter(Year == 2017) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m17 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2017.tif')
+plot(m17)
+dtest17e <- extract(m17, dtest17, bind = T) %>% as.data.frame() 
+head(dtest17e)
+all_levels <- union(unique(dtest17e$class), unique(dtest17e$classm))
+dcmm17 <- confusionMatrix(factor(dtest17e$class, levels = all_levels), factor(dtest17e$classm, levels = all_levels))
+dcmm17
+
+#2018
+dtest18 <- dtest %>% dplyr::filter(Year == 2018) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m18 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2018.tif')
+plot(m18)
+dtest18e <- extract(m18, dtest18, bind = T) %>% as.data.frame() 
+head(dtest18e)
+all_levels <- union(unique(dtest18e$class), unique(dtest18e$classm))
+dcmm18 <- confusionMatrix(factor(dtest18e$class, levels = all_levels), factor(dtest18e$classm, levels = all_levels))
+dcmm18
+
+#2019
+dtest19 <- dtest %>% dplyr::filter(Year == 2019) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m19 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2019.tif')
+plot(m19)
+dtest19e <- extract(m19, dtest19, bind = T) %>% as.data.frame() 
+head(dtest19e)
+all_levels <- union(unique(dtest19e$class), unique(dtest19e$classm))
+dcmm19 <- confusionMatrix(factor(dtest19e$class, levels = all_levels), factor(dtest19e$classm, levels = all_levels))
+dcmm19
+
+#2020
+dtest20 <- dtest %>% dplyr::filter(Year == 2020) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m20 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2020.tif')
+plot(m20)
+dtest20e <- extract(m20, dtest20, bind = T) %>% as.data.frame() 
+head(dtest20e)
+all_levels <- union(unique(dtest20e$class), unique(dtest20e$classm))
+dcmm20 <- confusionMatrix(factor(dtest20e$class, levels = all_levels), factor(dtest20e$classm, levels = all_levels))
+dcmm20
+
+#2021
+dtest21 <- dtest %>% dplyr::filter(Year == 2021) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m21 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2021.tif')
+plot(m21)
+dtest21e <- extract(m21, dtest21, bind = T) %>% as.data.frame() 
+head(dtest21e)
+all_levels <- union(unique(dtest21e$class), unique(dtest21e$classm))
+dcmm21 <- confusionMatrix(factor(dtest21e$class, levels = all_levels), factor(dtest21e$classm, levels = all_levels))
+dcmm21
+
+#2022
+dtest22 <- dtest %>% dplyr::filter(Year == 2022) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m22 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2022.tif')
+plot(m22)
+dtest22e <- extract(m22, dtest22, bind = T) %>% as.data.frame() 
+head(dtest22e)
+all_levels <- union(unique(dtest22e$class), unique(dtest22e$classm))
+dcmm22 <- confusionMatrix(factor(dtest22e$class, levels = all_levels), factor(dtest22e$classm, levels = all_levels))
+dcmm22
+
+#2023
+dtest23 <- dtest %>% dplyr::filter(Year == 2023) %>% 
+  st_as_sf(coords = c("easting", "northing"), crs = 32617)
+m23 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2023.tif')
+plot(m23)
+dtest23e <- extract(m23, dtest23, bind = T) %>% as.data.frame() 
+head(dtest23e)
+all_levels <- union(unique(dtest23e$class), unique(dtest23e$classm))
+dcmm23 <- confusionMatrix(factor(dtest23e$class, levels = all_levels), factor(dtest23e$classm, levels = all_levels))
+dcmm23
+
+#DERM + our data
+head(dtest23)
+head(test23)
+ctest23 <- test23 %>% dplyr::select(classm, geometry)
+cdtest23 <- dtest23 %>% dplyr::select(classm, geometry)
+cdat23 <- rbind(ctest23, cdtest23)
+
+cdat23e <- extract(m23, cdat23, bind = T) %>% as.data.frame() 
+head(cdat23e)
+all_levels <- union(unique(cdat23e$class), unique(cdat23e$classm))
+ccm23 <- confusionMatrix(factor(cdat23e$class, levels = all_levels), factor(cdat23e$classm, levels = all_levels))
+ccm23
