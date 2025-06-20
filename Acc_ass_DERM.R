@@ -731,10 +731,18 @@ test <- test %>% mutate(classm = case_when(
 ))
 head(test)
 unique(test$classm)
+hist(test$classm)
+
+test_spat <- test%>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617)
+
+plot(test_spat)
 #load in maps
 #2023
 m23 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2023.tif') 
 plot(m23)
+points(test_spat)
+
 
 test23 <- test %>% dplyr::filter(Year.x == 2023) %>% 
   st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
@@ -892,4 +900,59 @@ all_levels <- union(unique(cdat23e$class), unique(cdat23e$classm))
 ccm23 <- confusionMatrix(factor(cdat23e$class, levels = all_levels), factor(cdat23e$classm, levels = all_levels))
 ccm23
 
+##Second run of the model
+test <- read.csv('Maps/multi_2nd/S2_BB_multiclass_test_class.csv')
+head(test)
+unique(test$class)
+test <- test %>% mutate(classm = case_when(
+  class == 'SG High' ~ 4,
+  class == 'SG Low' ~ 5,
+  class == 'Bare' ~ 1,
+  class == 'MA High' ~ 2,
+  class == 'MA Low' ~ 3
+))
+head(test)
+unique(test$classm)
 
+#load in maps
+#2023
+m23 <- rast('Maps/multi_2nd/S2_BB_SAVmulticlass_2023.tif') 
+plot(m23)
+
+
+
+test23 <- test %>% dplyr::filter(Year.y == 2023) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test23e <- extract(m23, test23, bind = T) %>% as.data.frame() 
+head(test23e)
+cmm23 <- confusionMatrix(factor(test23e$class), factor(test23e$classm))
+cmm23
+
+#2024
+m24 <- rast('Maps/multi_2nd/S2_BB_SAVmulticlass_2024.tif') 
+plot(m24)
+
+test24 <- test %>% dplyr::filter(Year.y == 2024) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test24e <- extract(m24, test24, bind = T) %>% as.data.frame() 
+head(test24e)
+all_levels <- union(unique(test24e$class), unique(test24e$classm))
+cmm24 <- confusionMatrix(factor(test24e$class, levels = all_levels), factor(test24e$classm, levels = all_levels))
+cmm24
+
+#2025
+m25 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2025.tif') 
+plot(m25)
+
+test25 <- test %>% dplyr::filter(Year.y == 2025) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test25e <- extract(m25, test25, bind = T) %>% as.data.frame() 
+head(test25e)
+cmm25 <- confusionMatrix(factor(test25e$class), factor(test25e$classm))
+cmm25
+
+head(test23)
+head(test24)
