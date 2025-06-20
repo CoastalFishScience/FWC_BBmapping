@@ -891,3 +891,5 @@ head(cdat23e)
 all_levels <- union(unique(cdat23e$class), unique(cdat23e$classm))
 ccm23 <- confusionMatrix(factor(cdat23e$class, levels = all_levels), factor(cdat23e$classm, levels = all_levels))
 ccm23
+
+
