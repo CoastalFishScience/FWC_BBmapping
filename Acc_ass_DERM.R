@@ -740,7 +740,7 @@ test_spat <- test%>%
 plot(test_spat)
 #load in maps
 #2023
-m23 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2023.tif') 
+m23 <- rast('Maps/Multi/S2_BB_SAVmulticlass2023.tif') 
 plot(m23)
 points(test_spat)
 
@@ -754,7 +754,7 @@ cmm23 <- confusionMatrix(factor(test23e$class), factor(test23e$classm))
 cmm23
 
 #2024
-m24 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2024.tif') 
+m24 <- rast('Maps/Multi/S2_BB_SAVmulticlass2024.tif') 
 plot(m24)
 
 test24 <- test %>% dplyr::filter(Year.x == 2024) %>% 
@@ -766,7 +766,7 @@ cmm24 <- confusionMatrix(factor(test24e$class), factor(test24e$classm))
 cmm24
 
 #2025
-m25 <- rast('Maps/Multi2/S2_BB_SAVmulticlass2025.tif') 
+m25 <- rast('Maps/Multi/S2_BB_SAVmulticlass2025.tif') 
 plot(m25)
 
 test25 <- test %>% dplyr::filter(Year.x == 2025) %>% 
@@ -1008,7 +1008,7 @@ cmm24
 m25 <- rast('class3_trial/S2_BB_SAVmulticlass_2025.tif')
 plot(m25)
 #All not good. Back to original 5 class model
-test <- read.csv('class5_working/S2_BB_multiclass_test_class5.csv')
+test <- read.csv('class5_working/S2_BB_multiclass_test_class.csv')
 head(test)
 test <- test %>% mutate(classm = case_when(
   class == 'SG High' ~ 4,
@@ -1020,7 +1020,7 @@ test <- test %>% mutate(classm = case_when(
 unique(test$classm)
 
 #2023
-m23 <- rast('class5_working/S2_BB_SAVmulticlass_2023.tif')
+m23 <- rast('class5_working/S2_BB_SAVmulticlass2023.tif')
 plot(m23)
 
 test23 <- test %>% dplyr::filter(Year.y == 2023) %>% 
@@ -1038,7 +1038,7 @@ test24 <- test %>% dplyr::filter(Year.y == 2024) %>%
   st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
   dplyr::select(-class)
 
-m24 <- rast('class5_working/S2_BB_SAVmulticlass_2024.tif')
+m24 <- rast('class5_working/S2_BB_SAVmulticlass2024.tif')
 plot(m24)
 
 test24e <- extract(m24, test24, bind = T) %>% as.data.frame()
@@ -1050,10 +1050,195 @@ cmm24
 test25 <- test %>% dplyr::filter(Year.y == 2025) %>% 
   st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
   dplyr::select(-class)
-m25 <- rast('class3_trial/S2_BB_SAVmulticlass_2025.tif')
+m25 <- rast('class5_working/S2_BB_SAVmulticlass2025.tif')
 plot(m25)
 
 test25e <- extract(m25, test25, bind = T) %>% as.data.frame()
 head(test25e)
 cmm25 <- confusionMatrix(factor(test25e$class), factor(test25e$classm))
 cmm25
+
+#4 class map (bare, Low, SG High, MA High)
+test <- read.csv('Class4/S2_BB_multiclass_test_class.csv')
+head(test)
+test <- test %>% mutate(classm = case_when(
+  class == 'SG High' ~ 4,
+  class == 'Bare' ~ 1,
+  class == 'MA High' ~ 3,
+  class == 'Low' ~ 2
+))
+unique(test$classm)
+
+#2023
+m23 <- rast('Class4/S2_BB_SAVmulticlass2023.tif')
+plot(m23)
+
+test23 <- test %>% dplyr::filter(Year.y == 2023) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+unique(test$classm)
+
+test23e <- extract(m23, test23, bind = T) %>% as.data.frame()
+head(test23e)
+cmm23 <- confusionMatrix(factor(test23e$class), factor(test23e$classm))
+cmm23
+
+#2024
+test24 <- test %>% dplyr::filter(Year.y == 2024) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+
+m24 <- rast('Class4/S2_BB_SAVmulticlass2024.tif')
+plot(m24)
+
+test24e <- extract(m24, test24, bind = T) %>% as.data.frame()
+head(test24e)
+cmm24 <- confusionMatrix(factor(test24e$class), factor(test24e$classm))
+cmm24
+
+#2025
+test25 <- test %>% dplyr::filter(Year.y == 2025) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+m25 <- rast('Class4/S2_BB_SAVmulticlass2025.tif')
+plot(m25)
+
+test25e <- extract(m25, test25, bind = T) %>% as.data.frame()
+head(test25e)
+cmm25 <- confusionMatrix(factor(test25e$class), factor(test25e$classm))
+cmm25
+
+#4 class map without depth (bare, Low, SG High, MA High)
+test <- read.csv('Class4/nodepth/S2_BB_multiclass_test_class_nodepth.csv')
+head(test)
+test <- test %>% mutate(classm = case_when(
+  class == 'SG High' ~ 4,
+  class == 'Bare' ~ 1,
+  class == 'MA High' ~ 3,
+  class == 'Low' ~ 2
+))
+unique(test$classm)
+
+#2023
+m23 <- rast('Class4/nodepth/S2_BB_SAVmulticlass2023.tif')
+plot(m23)
+
+test23 <- test %>% dplyr::filter(Year.y == 2023) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+unique(test$classm)
+
+test23e <- extract(m23, test23, bind = T) %>% as.data.frame()
+head(test23e)
+cmm23 <- confusionMatrix(factor(test23e$class), factor(test23e$classm))
+cmm23
+
+#2024
+test24 <- test %>% dplyr::filter(Year.y == 2024) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+
+m24 <- rast('Class4/nodepth/S2_BB_SAVmulticlass2024.tif')
+plot(m24)
+
+test24e <- extract(m24, test24, bind = T) %>% as.data.frame()
+head(test24e)
+cmm24 <- confusionMatrix(factor(test24e$class), factor(test24e$classm))
+cmm24
+
+#2025
+test25 <- test %>% dplyr::filter(Year.y == 2025) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+m25 <- rast('Class4/nodepth/S2_BB_SAVmulticlass2025.tif')
+plot(m25)
+
+test25e <- extract(m25, test25, bind = T) %>% as.data.frame()
+head(test25e)
+cmm25 <- confusionMatrix(factor(test25e$class), factor(test25e$classm))
+cmm25
+
+##Getting new data for testing
+spec_old <- read.csv('class5_working/Training/S2_BB_all_spectral_dataold.csv')
+spec_new <- read.csv('class5_working/Training/S2_BB_all_spectral_datanew.csv')
+
+spec_add <- spec_old %>% dplyr::filter(if_any(everything(), is.na))
+spec_add <- spec_add[1:82,]
+
+spec_a <- spec_new %>% dplyr::filter(Point_code %in% spec_add$Point_code)
+
+#now we can add this to our testing dataset for 2023
+test <- read.csv('S2_BB_multiclass_test_class.csv')
+head(test)
+unique(test$class)
+test <- test %>% mutate(classm = case_when(
+  class == 'SG High' ~ 4,
+  class == 'SG Low' ~ 5,
+  class == 'Bare' ~ 1,
+  class == 'MA High' ~ 2,
+  class == 'MA Low' ~ 3
+))
+head(test)
+unique(test$classm)
+hist(test$classm)
+#load in maps
+#2023
+m23 <- rast('Maps/Multi/S2_BB_SAVmulticlass2023.tif') 
+plot(m23)
+points(test_spat)
+
+
+test23 <- test %>% dplyr::filter(Year.x == 2023) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test23e <- extract(m23, test23, bind = T) %>% as.data.frame() 
+head(test23e)
+cmm23 <- confusionMatrix(factor(test23e$class), factor(test23e$classm))
+cmm23
+
+#2024
+m24 <- rast('Maps/Multi/S2_BB_SAVmulticlass2024.tif') 
+plot(m24)
+
+test24 <- test %>% dplyr::filter(Year.x == 2024) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test24e <- extract(m24, test24, bind = T) %>% as.data.frame() 
+head(test24e)
+cmm24 <- confusionMatrix(factor(test24e$class), factor(test24e$classm))
+cmm24
+
+#2025
+m25 <- rast('Maps/Multi/S2_BB_SAVmulticlass2025.tif') 
+plot(m25)
+
+test25 <- test %>% dplyr::filter(Year.x == 2025) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test25e <- extract(m25, test25, bind = T) %>% as.data.frame() 
+head(test25e)
+cmm25 <- confusionMatrix(factor(test25e$class), factor(test25e$classm))
+cmm25
+
+head(test25)
+head(spec_a)
+
+spec_a <- test %>% mutate(classm = case_when(
+  TOT < 5 ~ 1,
+  TOT >= 5 & TOT < 50 & TSG > TMA ~ 5,
+  TOT >= 5 & TOT < 50 & TMA > TSG ~ 3,
+  TOT >= 50 & TSG > TMA ~ 4,
+  TOT >= 50 & TMA > TSG ~ 2
+))
+unique(spec_a$classm)
+spec_a <- spec_a %>% dplyr::filter(Year.x == 2025) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617)
+
+test25 <- test25 %>% dplyr::select(classm, geometry)
+spec_a <- spec_a %>% dplyr::select(classm, geometry)
+
+test25new <- rbind(test25, spec_a)
+test25enew <- extract(m25, test25new, bind = T) %>% as.data.frame() 
+head(test25enew)
+cmm25new <- confusionMatrix(factor(test25enew$class), factor(test25enew$classm))
+cmm25new
