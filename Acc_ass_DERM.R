@@ -1242,3 +1242,46 @@ test25enew <- extract(m25, test25new, bind = T) %>% as.data.frame()
 head(test25enew)
 cmm25new <- confusionMatrix(factor(test25enew$class), factor(test25enew$classm))
 cmm25new
+
+##YES, USE THIS MODEL!
+##Back to binary
+fielddat <- read.csv('Maps/Binary/class20/S2_BB_test_set_class.csv')
+fielddat <- fielddat %>% mutate(class10 = if_else(class10 == 'SAV', 2, 1), class20 = if_else(class20 == 'SAV', 2, 1), class30 = if_else(class30 == 'SAV', 2, 1))
+head(fielddat)
+
+##2023 with 20%
+map23 <- rast('Maps/Binary/class20/S2_BB_SAVmap2023_cover10.tif')
+plot(map23)
+fielddat2320 <- fielddat %>% dplyr::filter(Year.y == 2023) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class20)
+#make this a spatial object for extraction
+fd2320 <- fielddat2320 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2320e <- extract(map23, fd2320, bind = T) %>% as.data.frame() 
+cm2320 <- confusionMatrix(factor(fd2320e$class), factor(fd2320e$class20))
+cm2320
+
+##2024 with 20%
+map24 <- rast('Maps/Binary/class20/S2_BB_SAVmap2024_cover10.tif')
+plot(map24)
+fielddat2420 <- fielddat %>% dplyr::filter(Year.y == 2024) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class20)
+#make this a spatial object for extraction
+fd2420 <- fielddat2420 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2420e <- extract(map24, fd2420, bind = T) %>% as.data.frame() 
+head(fd2420e)
+all_levels <- union(unique(fd2420e$class), unique(fd2420e$class20))
+cm2420 <- confusionMatrix(factor(fd2420e$class, levels = all_levels), factor(fd2420e$class20, levels = all_levels))
+cm2420
+
+
+
+##2025 with 20%
+map25 <- rast('Maps/Binary/class20/S2_BB_SAVmap2025_cover10.tif')
+plot(map25)
+fielddat2520 <- fielddat %>% dplyr::filter(Year.y == 2025) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class20)
+#make this a spatial object for extraction
+fd2520 <- fielddat2520 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2520e <- extract(map25, fd2520, bind = T) %>% as.data.frame() 
+cm2520 <- confusionMatrix(factor(fd2520e$class), factor(fd2520e$class20))
+cm2520
