@@ -1285,3 +1285,237 @@ fd2520 <- fielddat2520 %>%
 fd2520e <- extract(map25, fd2520, bind = T) %>% as.data.frame() 
 cm2520 <- confusionMatrix(factor(fd2520e$class), factor(fd2520e$class20))
 cm2520
+
+map16 <- rast('Maps/Binary/class20/S2_BB_SAVmap2016_cover10.tif')
+plot(map16)
+
+map17 <- rast('Maps/Binary/class20/S2_BB_SAVmap2017_cover10.tif')
+plot(map17)
+
+##Binary with photoint points, 20%
+fielddat <- read.csv('Maps/Binary/Run4/S2_BB_test_set_class.csv')
+fielddat <- fielddat %>% mutate(class10 = if_else(class10 == 'SAV', 2, 1), class20 = if_else(class20 == 'SAV', 2, 1), class30 = if_else(class30 == 'SAV', 2, 1))
+head(fielddat)
+
+##2023 with 20%
+map23 <- rast('Maps/Binary/Run4/S2_BB_SAVmulticlass_2023.tif')
+plot(map23)
+fielddat2320 <- fielddat %>% dplyr::filter(Year.y == 2023) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class20)
+#make this a spatial object for extraction
+fd2320 <- fielddat2320 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2320e <- extract(map23, fd2320, bind = T) %>% as.data.frame() 
+cm2320 <- confusionMatrix(factor(fd2320e$class), factor(fd2320e$class20))
+cm2320
+
+##2024 with 20%
+map24 <- rast('Maps/Binary/Run4/S2_BB_SAVmulticlass_2024.tif')
+plot(map24)
+fielddat2420 <- fielddat %>% dplyr::filter(Year.y == 2024) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class20)
+#make this a spatial object for extraction
+fd2420 <- fielddat2420 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2420e <- extract(map24, fd2420, bind = T) %>% as.data.frame() 
+head(fd2420e)
+all_levels <- union(unique(fd2420e$class), unique(fd2420e$class20))
+cm2420 <- confusionMatrix(factor(fd2420e$class, levels = all_levels), factor(fd2420e$class20, levels = all_levels))
+cm2420
+
+
+
+##2025 with 20%
+map25 <- rast('Maps/Binary/Run4/S2_BB_SAVmulticlass_2025.tif')
+plot(map25)
+fielddat2520 <- fielddat %>% dplyr::filter(Year.y == 2025) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class20)
+#make this a spatial object for extraction
+fd2520 <- fielddat2520 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2520e <- extract(map25, fd2520, bind = T) %>% as.data.frame() 
+cm2520 <- confusionMatrix(factor(fd2520e$class), factor(fd2520e$class20))
+cm2520
+
+map16 <- rast('Maps/Binary/Run4/S2_BB_SAVmulticlass_2016.tif')
+plot(map16)
+
+#Trying with 30%. Last chance. But first back to 5 class model
+##Getting new data for testing
+spec_old <- read.csv('class5_working/Training/S2_BB_all_spectral_dataold.csv')
+spec_new <- read.csv('class5_working/Training/S2_BB_all_spectral_datanew.csv')
+
+spec_add <- spec_old %>% dplyr::filter(if_any(everything(), is.na))
+spec_add <- spec_add[1:82,]
+
+spec_a <- spec_new %>% dplyr::filter(Point_code %in% spec_add$Point_code)
+
+#now we can add this to our testing dataset for 2023
+test <- read.csv('S2_BB_multiclass_test_class.csv')
+head(test)
+unique(test$class)
+test <- test %>% mutate(classm = case_when(
+  class == 'SG High' ~ 4,
+  class == 'SG Low' ~ 5,
+  class == 'Bare' ~ 1,
+  class == 'MA High' ~ 2,
+  class == 'MA Low' ~ 3
+))
+head(test)
+unique(test$classm)
+hist(test$classm)
+
+#load in maps
+#2023
+m23 <- rast('Maps/Multi/S2_BB_SAVmulticlass2023.tif') 
+plot(m23)
+
+
+
+test23 <- test %>% dplyr::filter(Year.x == 2023) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test23e <- extract(m23, test23, bind = T) %>% as.data.frame() 
+head(test23e)
+cmm23 <- confusionMatrix(factor(test23e$class), factor(test23e$classm))
+cmm23
+
+#2024
+m24 <- rast('Maps/multi/S2_BB_SAVmulticlass2024.tif') 
+plot(m24)
+
+test24 <- test %>% dplyr::filter(Year.x == 2024) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test24e <- extract(m24, test24, bind = T) %>% as.data.frame() 
+head(test24e)
+cmm24 <- confusionMatrix(factor(test24e$class), factor(test24e$classm))
+cmm24
+
+#2025
+m25 <- rast('Maps/multi/S2_BB_SAVmulticlass2025.tif') 
+plot(m25)
+
+test25 <- test %>% dplyr::filter(Year.x == 2025) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
+  dplyr::select(-class)
+test25e <- extract(m25, test25, bind = T) %>% as.data.frame() 
+head(test25e)
+cmm25 <- confusionMatrix(factor(test25e$class), factor(test25e$classm))
+cmm25
+
+head(test25)
+head(spec_a)
+
+spec_a <- test %>% mutate(classm = case_when(
+  TOT < 5 ~ 1,
+  TOT >= 5 & TOT < 50 & TSG > TMA ~ 5,
+  TOT >= 5 & TOT < 50 & TMA > TSG ~ 3,
+  TOT >= 50 & TSG > TMA ~ 4,
+  TOT >= 50 & TMA > TSG ~ 2
+))
+unique(spec_a$classm)
+spec_a <- spec_a %>% dplyr::filter(Year.x == 2025) %>% 
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617)
+
+test25 <- test25 %>% dplyr::select(classm, geometry)
+spec_a <- spec_a %>% dplyr::select(classm, geometry)
+
+test25new <- rbind(test25, spec_a)
+test25enew <- extract(m25, test25new, bind = T) %>% as.data.frame() 
+head(test25enew)
+cmm25new <- confusionMatrix(factor(test25enew$class), factor(test25enew$classm))
+cmm25new
+
+##Binary 30%
+fielddat <- read.csv('Maps/Binary/class30/S2_BB_test_set_class.csv')
+fielddat <- fielddat %>% mutate(class10 = if_else(class10 == 'SAV', 2, 1), class20 = if_else(class20 == 'SAV', 2, 1), class30 = if_else(class30 == 'SAV', 2, 1))
+head(fielddat)
+
+##2023 with 30%
+map23 <- rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2023.tif')
+plot(map23)
+fielddat2330 <- fielddat %>% dplyr::filter(Year.y == 2023) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class30)
+#make this a spatial object for extraction
+fd2330 <- fielddat2330 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2330e <- extract(map23, fd2330, bind = T) %>% as.data.frame() 
+cm2330 <- confusionMatrix(factor(fd2330e$class), factor(fd2330e$class30))
+cm2330
+
+##2024 with 30%
+map24 <- rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2024.tif')
+plot(map24)
+fielddat2430 <- fielddat %>% dplyr::filter(Year.y == 2024) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class30)
+#make this a spatial object for extraction
+fd2430 <- fielddat2430 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2430e <- extract(map24, fd2430, bind = T) %>% as.data.frame() 
+cm2430 <- confusionMatrix(factor(fd2430e$class), factor(fd2430e$class30))
+cm2430
+
+
+
+##2025 with 30%
+map25 <- rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2025.tif')
+plot(map25)
+fielddat2530 <- fielddat %>% dplyr::filter(Year.y == 2025) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class30)
+#make this a spatial object for extraction
+fd2530 <- fielddat2530 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2530e <- extract(map25, fd2530, bind = T) %>% as.data.frame() 
+cm2530 <- confusionMatrix(factor(fd2530e$class), factor(fd2530e$class30))
+cm2530
+
+map16 <-  rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2016.tif')
+plot(map16)
+map17 <-  rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2017.tif')
+plot(map17)
+map18 <-  rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2018.tif')
+plot(map18)
+map19 <-  rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2019.tif')
+plot(map19)
+map20 <-  rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2020.tif')
+plot(map20)
+map21 <-  rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2021.tif')
+plot(map21)
+map22 <-  rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2022.tif')
+plot(map22)
+
+##Binary 10 original model final final final
+##Binary 30%
+fielddat <- read.csv('Maps/Binary/Run10_2/S2_BB_test_set_class.csv')
+fielddat <- fielddat %>% mutate(class10 = if_else(class10 == 'SAV', 2, 1), class20 = if_else(class20 == 'SAV', 2, 1), class30 = if_else(class30 == 'SAV', 2, 1))
+head(fielddat)
+
+##2023 with 30%
+map23 <- rast('Maps/Binary/Run10_2/S2_BB_SAVmulticlass_2023.tif')
+plot(map23)
+fielddat2330 <- fielddat %>% dplyr::filter(Year.y == 2023) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class30)
+#make this a spatial object for extraction
+fd2330 <- fielddat2330 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2330e <- extract(map23, fd2330, bind = T) %>% as.data.frame() 
+cm2330 <- confusionMatrix(factor(fd2330e$class), factor(fd2330e$class30))
+cm2330
+
+##2024 with 30%
+map24 <- rast('Maps/Binary/Run10_2/S2_BB_SAVmulticlass_2024.tif')
+plot(map24)
+fielddat2430 <- fielddat %>% dplyr::filter(Year.y == 2024) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class30)
+#make this a spatial object for extraction
+fd2430 <- fielddat2430 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2430e <- extract(map24, fd2430, bind = T) %>% as.data.frame() 
+cm2430 <- confusionMatrix(factor(fd2430e$class), factor(fd2430e$class30))
+cm2430
+
+
+
+##2025 with 30%
+map25 <- rast('Maps/Binary/class30/S2_BB_SAVmulticlass_2025.tif')
+plot(map25)
+fielddat2530 <- fielddat %>% dplyr::filter(Year.y == 2025) %>% dplyr::select(TOT, UTM.Easting, UTM.Northing, class30)
+#make this a spatial object for extraction
+fd2530 <- fielddat2530 %>%
+  st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
+fd2530e <- extract(map25, fd2530, bind = T) %>% as.data.frame() 
+cm2530 <- confusionMatrix(factor(fd2530e$class), factor(fd2530e$class30))
+cm2530
