@@ -4,6 +4,7 @@ library(tidyverse)
 library(raster)
 library(parallel)
 library(caret)
+library(sf)
 
 ###Binary maps
 fielddat <- read.csv('S2_BB_test_set_class.csv')
@@ -254,7 +255,7 @@ hist(test$classm)
 
 #load in maps
 #2023
-m23 <- rast('Maps/Multi/S2_BB_SAVmulticlass2023.tif') 
+m23 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2023.tif') 
 plot(m23)
 m23 <- as.numeric(m23)
 m23_in <- round(m23)
@@ -278,10 +279,10 @@ cmm23
 m23s <- as.polygons(m23_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 
 # Export as ESRI Shapefile
-writeVector(m23s, "Maps/Final/Multiclass/Multiclass_2023.shp", filetype = "ESRI Shapefile")
+writeVector(m23s, "Maps/Final/Multiclass/Multiclass_2023.shp", filetype = "ESRI Shapefile", overwrite = T)
 
 #2024
-m24 <- rast('Maps/multi/S2_BB_SAVmulticlass2024.tif') 
+m24 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2024.tif') 
 plot(m24)
 m24 <- as.numeric(m24)
 m24_in <- round(m24)
@@ -304,10 +305,10 @@ cmm24
 m24s <- as.polygons(m24_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 
 # Export as ESRI Shapefile
-writeVector(m24s, "Maps/Final/Multiclass/Multiclass_2024.shp", filetype = "ESRI Shapefile")
+writeVector(m24s, "Maps/Final/Multiclass/Multiclass_2024.shp", filetype = "ESRI Shapefile", overwrite = T)
 
 #2025
-m25 <- rast('Maps/multi/S2_BB_SAVmulticlass2025.tif') 
+m25 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2025.tif') 
 plot(m25)
 m25 <- as.numeric(m25)
 m25_in <- round(m25)
@@ -329,8 +330,15 @@ cmm25
 
 head(test25)
 head(spec_a)
+spec_old <- read.csv('class5_working/Training/S2_BB_all_spectral_dataold.csv')
+spec_new <- read.csv('class5_working/Training/S2_BB_all_spectral_datanew.csv')
 
-spec_a <- test %>% mutate(classm = case_when(
+spec_add <- spec_old %>% dplyr::filter(if_any(everything(), is.na))
+spec_add <- spec_add[1:82,]
+
+spec_a <- spec_new %>% dplyr::filter(Point_code %in% spec_add$Point_code)
+
+spec_a <- spec_a %>% mutate(classm = case_when(
   TOT < 5 ~ 1,
   TOT >= 5 & TOT < 50 & TSG > TMA ~ 5,
   TOT >= 5 & TOT < 50 & TMA > TSG ~ 3,
@@ -353,10 +361,10 @@ cmm25new
 m25s <- as.polygons(m25_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 
 # Export as ESRI Shapefile
-writeVector(m25s, "Maps/Final/Multiclass/Multiclass_2025.shp", filetype = "ESRI Shapefile")
+writeVector(m25s, "Maps/Final/Multiclass/Multiclass_2025.shp", filetype = "ESRI Shapefile", overwrite = T)
 
 #2016
-m16 <- rast('Maps/Multi/S2_BB_SAVmulticlass2016.tif') 
+m16 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2016.tif') 
 plot(m16)
 m16 <- as.numeric(m16)
 m16_in <- round(m16)
@@ -371,10 +379,10 @@ plot(m16_smooth)
 
 m16s <- as.polygons(m16_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 # Export as ESRI Shapefile
-writeVector(m16s, "Maps/Final/Multiclass/Multiclass_2016.shp", filetype = "ESRI Shapefile")
+writeVector(m16s, "Maps/Final/Multiclass/Multiclass_2016.shp", filetype = "ESRI Shapefile", overwrite = T)
 
 #2017
-m17 <- rast('Maps/Multi/S2_BB_SAVmulticlass2017.tif') 
+m17 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2017.tif') 
 plot(m17)
 m17 <- as.numeric(m17)
 m17_in <- round(m17)
@@ -389,10 +397,10 @@ plot(m17_smooth)
 
 m17s <- as.polygons(m17_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 # Export as ESRI Shapefile
-writeVector(m17s, "Maps/Final/Multiclass/Multiclass_2017.shp", filetype = "ESRI Shapefile")
+writeVector(m17s, "Maps/Final/Multiclass/Multiclass_2017.shp", filetype = "ESRI Shapefile", overwrite = T)
 
 #2018
-m18 <- rast('Maps/Multi/S2_BB_SAVmulticlass2018.tif') 
+m18 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2018.tif') 
 plot(m18)
 m18 <- as.numeric(m18)
 m18_in <- round(m18)
@@ -407,10 +415,10 @@ plot(m18_smooth)
 
 m18s <- as.polygons(m18_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 # Export as ESRI Shapefile
-writeVector(m18s, "Maps/Final/Multiclass/Multiclass_2018.shp", filetype = "ESRI Shapefile")
+writeVector(m18s, "Maps/Final/Multiclass/Multiclass_2018.shp", filetype = "ESRI Shapefile", overwrite = T)
 
 #2019
-m19 <- rast('Maps/Multi/S2_BB_SAVmulticlass2019.tif') 
+m19 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2019.tif') 
 plot(m19)
 m19 <- as.numeric(m19)
 m19_in <- round(m19)
@@ -425,10 +433,10 @@ plot(m19_smooth)
 
 m19s <- as.polygons(m19_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 # Export as ESRI Shapefile
-writeVector(m19s, "Maps/Final/Multiclass/Multiclass_2019.shp", filetype = "ESRI Shapefile")
+writeVector(m19s, "Maps/Final/Multiclass/Multiclass_2019.shp", filetype = "ESRI Shapefile", overwrite = T)
 
 #2020
-m20 <- rast('Maps/Multi/S2_BB_SAVmulticlass2020.tif') 
+m20 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2020.tif') 
 plot(m20)
 m20 <- as.numeric(m20)
 m20_in <- round(m20)
@@ -443,10 +451,10 @@ plot(m20_smooth)
 
 m20s <- as.polygons(m20_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 # Export as ESRI Shapefile
-writeVector(m20s, "Maps/Final/Multiclass/Multiclass_2020.shp", filetype = "ESRI Shapefile")
+writeVector(m20s, "Maps/Final/Multiclass/Multiclass_2020.shp", filetype = "ESRI Shapefile", overwrite = T)
 
 #2021
-m21 <- rast('Maps/Multi/S2_BB_SAVmulticlass2021.tif') 
+m21 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2021.tif') 
 plot(m21)
 m21 <- as.numeric(m21)
 m21_in <- round(m21)
@@ -461,10 +469,10 @@ plot(m21_smooth)
 
 m21s <- as.polygons(m21_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 # Export as ESRI Shapefile
-writeVector(m21s, "Maps/Final/Multiclass/Multiclass_2021.shp", filetype = "ESRI Shapefile")
+writeVector(m21s, "Maps/Final/Multiclass/Multiclass_2021.shp", filetype = "ESRI Shapefile", overwrite = T)
 
 #2022
-m22 <- rast('Maps/Multi/S2_BB_SAVmulticlass2022.tif') 
+m22 <- rast('Maps/multi_re/S2_BB_SAVmulticlass_2022.tif') 
 plot(m22)
 m22 <- as.numeric(m22)
 m22_in <- round(m22)
@@ -479,4 +487,4 @@ plot(m22_smooth)
 
 m22s <- as.polygons(m22_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 # Export as ESRI Shapefile
-writeVector(m22s, "Maps/Final/Multiclass/Multiclass_2022.shp", filetype = "ESRI Shapefile")
+writeVector(m22s, "Maps/Final/Multiclass/Multiclass_2022.shp", filetype = "ESRI Shapefile", overwrite = T)
