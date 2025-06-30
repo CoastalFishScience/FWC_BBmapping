@@ -12,7 +12,7 @@ head(fielddat)
 fielddat <- fielddat %>% mutate(class10 = if_else(class10 == 'SAV', 2, 1))
 
 ##2023
-m23 <- rast('Maps/Final/Binary/S2_BB_SAVmap2023_cover10.tif')
+m23 <- rast('Maps/Final/Binary/Binary_2023.tif')
 plot(m23)
 m23 <- as.numeric(m23)
 m23_int <- round(m23)
@@ -39,7 +39,7 @@ m23s <- as.polygons(m23_smooth, dissolve = TRUE)  # dissolve is TRUE by default
 writeVector(m23s, "Maps/Final/Binary/Binary_2023.shp", filetype = "ESRI Shapefile")
 
 ##2024
-m24 <- rast('Maps/Final/Binary/S2_BB_SAVmap2024_cover10.tif')
+m24 <- rast('Maps/Final/Binary/Binary_2024.tif')
 plot(m24)
 m24 <- as.numeric(m24)
 m24_int <- round(m24)
@@ -54,7 +54,7 @@ fielddat2410 <- fielddat %>% dplyr::filter(Year == 2024) %>% dplyr::select(TOT, 
 #make this a spatial object for extraction
 fd2410 <- fielddat2410 %>%
   st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) 
-fd2410e <- extract(m24_smooth, fd2410, bind = T) %>% as.data.frame() 
+fd2410e <- extract(m24, fd2410, bind = T) %>% as.data.frame() 
 head(fd2410e)
 cm2410 <- confusionMatrix(factor(fd2410e$class), factor(fd2410e$class10))
 cm2410
@@ -239,19 +239,20 @@ writeRaster(m25_smooth, 'Maps/Final/Binary/Binary_2025.tif')
 
 
 ##Multiclass
-test <- read.csv('S2_BB_multiclass_test_class.csv')
+test <- read.csv('Maps/S2_BB_multiclass_test_class2.csv')
 head(test)
 unique(test$class)
 test <- test %>% mutate(classm = case_when(
-  class == 'SG High' ~ 4,
-  class == 'SG Low' ~ 5,
-  class == 'Bare' ~ 1,
-  class == 'MA High' ~ 2,
-  class == 'MA Low' ~ 3
+  TOT < 5 ~ 1,
+  TOT >= 5 & TOT < 50 & TSG > TMA ~ 5,
+  TOT >= 5 & TOT < 50 & TMA > TSG ~ 3,
+  TOT >= 50 & TSG > TMA ~ 4,
+  TOT >= 50 & TMA > TSG ~ 2
 ))
 head(test)
 unique(test$classm)
 hist(test$classm)
+test$Year.x <- as.numeric(test$Year.x)
 
 #load in maps
 #2023
@@ -272,8 +273,10 @@ plot(m23_smooth)
 test23 <- test %>% dplyr::filter(Year.x == 2023) %>% 
   st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
   dplyr::select(-class)
-test23e <- extract(m23_smooth, test23, bind = T) %>% as.data.frame() 
+test23e <- extract(m23, test23, bind = T) %>% as.data.frame() 
 head(test23e)
+all_levels <- union(unique(test23e$class), unique(test23e$classm))
+cmm23 <- confusionMatrix(factor(test23e$class, levels = all_levels), factor(test23e$classm, levels = all_levels))
 cmm23 <- confusionMatrix(factor(test23e$class), factor(test23e$classm))
 cmm23
 m23s <- as.polygons(m23_smooth, dissolve = TRUE)  # dissolve is TRUE by default
@@ -294,11 +297,14 @@ plot(m24_int)
 window <- matrix(1, 3, 3)
 m24_smooth <- terra::focal(m24_int, w = window, fun = modal, na.rm = TRUE, test = F)
 plot(m24_smooth)
+test24 <- test %>% dplyr::filter(Year.x == 2024)
 test24 <- test %>% dplyr::filter(Year.x == 2024) %>% 
   st_as_sf(coords = c("UTM.Easting", "UTM.Northing"), crs = 32617) %>% 
   dplyr::select(-class)
 test24e <- extract(m24, test24, bind = T) %>% as.data.frame() 
 head(test24e)
+all_levels <- union(unique(test24e$class), unique(test24e$classm))
+cmm24 <- confusionMatrix(factor(test24e$class, levels = all_levels), factor(test24e$classm, levels = all_levels))
 cmm24 <- confusionMatrix(factor(test24e$class), factor(test24e$classm))
 cmm24
 
